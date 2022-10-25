@@ -77,7 +77,7 @@ client.on("ready", async () => {
 	tmiClient.connect();
 	tmiClient.on('message', async (channel, tags, message, self) => {
 		if (self) return; // Do not process messages we sent ourselves
-		if (!(await isOldEnough(tags.username, 604800/*7 days*/))) {
+		if (!(await isOldEnough(tags.username, parseInt(process.env['MIN_AGE_SECONDS'], 10)))) {
 			messages.push({
 				dcMessage: await modChannel.send({
 					content: `${tags['display-name']}: ${message}`,
