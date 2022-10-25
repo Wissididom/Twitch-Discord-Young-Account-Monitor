@@ -4,7 +4,9 @@ LIBRARIES
 
 require('dotenv').config();
 
-const { Client, GatewayIntentBits, Partials, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const fetch = require('node-fetch-commonjs');
+
+const { Client, GatewayIntentBits, Partials, TextInputStyle, ModalBuilder, TextInputBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const tmi = require('tmi.js');
 const express = require('express');
 //const fetch = require('node-fetch');
@@ -75,7 +77,7 @@ client.on("ready", async () => {
 	tmiClient.connect();
 	tmiClient.on('message', async (channel, tags, message, self) => {
 		if (self) return; // Do not process messages we sent ourselves
-		if (!isOldEnough(tags.username, 604800/*7 days*/)) {
+		if (!(await isOldEnough(tags.username, 604800/*7 days*/))) {
 			messages.push({
 				dcMessage: await modChannel.send({
 					content: `${tags['display-name']}: ${message}`,
@@ -129,8 +131,8 @@ client.on("interactionCreate", async interaction => {
 					break;
 			}*/
 		} else if (interaction.isButton()) {
-			await interaction.deferReply({ ephemeral: true });
 			if (interaction.customId == 'deleteBtn') {
+				await interaction.deferReply({ ephemeral: true });
 				let message = messages.find(msg => msg.dcMessage.id == interaction.message.id);
 				if (message) {
 					tmiId = message.tmiMessage.tags.id;
