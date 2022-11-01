@@ -44,7 +44,7 @@ async function isOldEnough(username, minAge) {
 				'Authorization': `Bearer ${tokens.access_token}`
 			}
 		}).then(res => res.json()).catch(err => console.error)).data[0].created_at;
-		let createDate = new Date(usernameCreatedAtMapping);
+		let createDate = new Date(usernameCreatedAtMapping[username]);
 		let age = (today.getTime() - createDate.getTime()) / 1000;
 		return age > minAge;
 	}
