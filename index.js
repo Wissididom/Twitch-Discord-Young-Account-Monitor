@@ -1,24 +1,44 @@
-/*
-LIBRARIES
-*/
+import * as dotenv from 'dotenv';
 
-require('dotenv').config();
+import {
+	Client,
+	GatewayIntentBits,
+	Partials,
+	TextInputStyle,
+	ModalBuilder,
+	TextInputBuilder,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle
+} from 'discord.js';
+import * as tmi from 'tmi.js';
+import express from 'express';
+//import fetch from 'node-fetch';
+import * as fs from 'fs';
+import open, {openApp, apps} from 'open';
 
-const fetch = require('node-fetch-commonjs');
-
-const { Client, GatewayIntentBits, Partials, TextInputStyle, ModalBuilder, TextInputBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const tmi = require('tmi.js');
-const express = require('express');
-//const fetch = require('node-fetch');
-const fs = require('fs');
+dotenv.config();
 
 /*
 OBJECTS, TOKENS, GLOBAL VARIABLES
 */
 
-const client = new Client({intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages], partials: [Partials.User, Partials.Channel, Partials.GuildMember, Partials.Message, Partials.Reaction]});
+const client = new Client({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.DirectMessages
+	],
+	partials: [
+		Partials.User,
+		Partials.Channel,
+		Partials.GuildMember,
+		Partials.Message,
+		Partials.Reaction
+	]
+});
 
-const mySecret = process.env['DISCORD_TOKEN'];  // Discord Token
+const mySecret = process.env.DISCORD_TOKEN;
 
 let tokens = {
 	access_token: 'N/A',
@@ -28,7 +48,7 @@ let tmiClient = null;
 let modChannel = null;
 let messages = [];
 let broadcasterId = null;
-let usernameCreatedAtMapping = {}
+let usernameCreatedAtMapping = {};
 
 async function isOldEnough(username, minAge) {
 	if (usernameCreatedAtMapping[username]) {
@@ -50,16 +70,9 @@ async function isOldEnough(username, minAge) {
 	}
 }
 
-/*
-BOT ON
-
-This section runs when the bot is logged in and listening for commands. First, it writes a log to the console indicating it is logged in. Next, it listens on the server and determines whether a message starts with ! or $ before calling either the Admin checkCommand function, or the User checkInput function.
-*/
-
-// Outputs console log when bot is logged in
 client.on("ready", async () => {
 	console.log(`Logged in as ${client.user.tag}!`);  // Logging
-	modChannel = await client.channels.fetch(process.env['POSTING_CHANNEL_ID']);
+	modChannel = await client.channels.fetch(process.env.POSTING_CHANNEL_ID);
 	broadcasterId = (await fetch(`https://api.twitch.tv/helix/users`, {
 		headers: {
 			'Client-ID': process.env.TWITCH_CLIENT_ID,
@@ -69,15 +82,15 @@ client.on("ready", async () => {
 	tmiClient = new tmi.Client({
 		options: { debug: true },
 		identity: {
-			username: process.env['BROADCASTER_LOGIN'],
+			username: process.env.BROADCASTER_LOGIN,
 			password: `oauth:${tokens.access_token}`
 		},
-		channels: [ process.env['BROADCASTER_LOGIN'] ]
+		channels: [ process.env.BROADCASTER_LOGIN ]
 	});
 	tmiClient.connect();
 	tmiClient.on('message', async (channel, tags, message, self) => {
 		if (self) return; // Do not process messages we sent ourselves
-		if (!(await isOldEnough(tags.username, parseInt(process.env['MIN_AGE_SECONDS'], 10)))) {
+		if (!(await isOldEnough(tags.username, parseInt(process.env.MIN_AGE_SECONDS, 10)))) {
 			messages.push({
 				dcMessage: await modChannel.send({
 					content: `${tags['display-name']}: ${message}`,
@@ -97,39 +110,19 @@ client.on("ready", async () => {
 });
 
 client.on("interactionCreate", async interaction => {
-	if (!process.env['POSTING_CHANNEL_ID']) {
+	if (!process.env.POSTING_CHANNEL_ID) {
 		interaction.reply({
 			content: `Please first set a channel where you want me to accept the commands! For <#${interaction.channel.id}> (${interaction.channel.name}) just add the line \`POSTING_CHANNEL_ID=${interaction.channel.id}\` to .env!`,
-			ephemeral: process.env['EPHEMERAL'] == 'true'
+			ephemeral: process.env.EPHEMERAL == 'true'
 		});
-	} else if (interaction.channel.id != process.env['POSTING_CHANNEL_ID']) {
+	} else if (interaction.channel.id != process.env.POSTING_CHANNEL_ID) {
 		interaction.reply({
 			content: `<#${interaction.channel.id}> (${interaction.channel.name}) is not allowed to accept commands!`,
-			ephemeral: process.env['EPHEMERAL'] == 'true'
+			ephemeral: process.env.EPHEMERAL == 'true'
 		});
 	} else {
 		if (interaction.isChatInputCommand()) {
-			/*interaction.deferReply();
-			switch (interaction.commandName) {
-				case 'poll':
-					createPoll(interaction);
-					break;
-				case 'endpoll':
-					endPoll(interaction);
-					break;
-				case 'getpoll':
-					getPoll(interaction);
-					break;
-				case 'prediction':
-					createPrediction(interaction);
-					break;
-				case 'endprediction':
-					endPrediction(interaction);
-					break;
-				case 'getprediction':
-					getPrediction(interaction);
-					break;
-			}*/
+			// Should never happen - do nothing
 		} else if (interaction.isButton()) {
 			if (interaction.customId == 'deleteBtn') {
 				await interaction.deferReply({ ephemeral: true });
@@ -171,7 +164,7 @@ client.on("interactionCreate", async interaction => {
 						ephemeral: true
 					});
 				}
-			} else if (interaction.customId = 'timeoutBtn') {
+			} else if (interaction.customId == 'timeoutBtn') {
 				let modal = new ModalBuilder().setTitle('Timeout').setCustomId('timeoutModal').setComponents(
 					new ActionRowBuilder().setComponents(new TextInputBuilder().setCustomId('timeoutLength').setLabel('Length in Seconds').setMaxLength(7).setMinLength(1).setPlaceholder('Length in Seconds').setStyle(TextInputStyle.Short)),
 					new ActionRowBuilder().setComponents(new TextInputBuilder().setCustomId('timeoutReason').setLabel('Timeout Reason').setRequired(false).setPlaceholder('Timeout Reason').setStyle(TextInputStyle.Short))
@@ -185,7 +178,7 @@ client.on("interactionCreate", async interaction => {
 				});
 				if (submitted) {
 					let timeoutLength = parseInt(submitted.fields.getTextInputValue('timeoutLength'), 10);
-					if (timeoutLength != NaN) {
+					if (!isNaN(timeoutLength)) {
 						validate(false).then(async (value) => {
 							fetch(`https://api.twitch.tv/helix/moderation/bans?broadcaster_id=${broadcasterId}&moderator_id=${broadcasterId}`, {
 								method: 'POST',
@@ -205,9 +198,7 @@ client.on("interactionCreate", async interaction => {
 										}).then(res => res.json()).catch(err => console.error)).data[0].id
 									}
 								})
-							}).then(data => {
-								return data.json()
-							}).then(json => {
+							}).then(data => data.json()).then(json => {
 								interaction.editReply({
 									content: `Twitch's response: ${JSON.stringify(json)}`,
 									ephemeral: true
@@ -268,9 +259,7 @@ client.on("interactionCreate", async interaction => {
 									}).then(res => res.json()).catch(err => console.error)).data[0].id
 								}
 							})
-						}).then(data => {
-							return data.json()
-						}).then(json => {
+						}).then(data => data.json()).then(json => {
 							interaction.editReply({
 								content: `Twitch's response: ${JSON.stringify(json)}`,
 								ephemeral: true
@@ -292,12 +281,6 @@ client.on("interactionCreate", async interaction => {
 		}
 	}
 });
-
-/*
-BOT START CODE (login, start server, etc)
-
-This section checks if there is a TOKEN secret and uses it to login if it is found. If not, the bot outputs a log to the console and terminates.
-*/
 
 function validate(openBrowser = true) {
 	return new Promise((resolve, reject) => {
@@ -323,7 +306,7 @@ function validate(openBrowser = true) {
 							console.log(`Error-Message: ${res.message}`);
 							console.log(`Open the following Website to authenticate: https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
 							if (openBrowser)
-								require('open')(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
+								open(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
 						} else {
 							tokens = res;
 							fs.writeFileSync('./.tokens.json', JSON.stringify(res));
@@ -335,7 +318,7 @@ function validate(openBrowser = true) {
 						console.error(err);
 						console.log(`Open the following Website to authenticate: https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
 						if (openBrowser)
-							require('open')(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
+							open(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
 					});
 				} else {
 					console.log(`Status: ${res.status}`);
@@ -375,7 +358,7 @@ server.listen(parseInt(process.env.LOCAL_SERVER_PORT), () => {
 	console.log('Express Server ready!');
 	if (!fs.existsSync('./.tokens.json')) {
 		console.log(`Open the following Website to authenticate: https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
-		require('open')(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
+		open(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
 	}
 });
 if (!mySecret) {
