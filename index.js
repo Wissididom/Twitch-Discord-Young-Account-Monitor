@@ -1,16 +1,24 @@
-/*
-LIBRARIES
-*/
-
+import * as dotenv from 'dotenv';
 require('dotenv').config();
 
-const fetch = require('node-fetch-commonjs');
+import {
+	Client,
+	GatewayIntentBits,
+	Partials,
+	TextInputStyle,
+	ModalBuilder,
+	TextInputBuilder,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle
+} from 'discord.js';
+import * as tmi from 'tmi.js';
+import * as express from 'express';
+//import fetch from 'node-fetch';
+import * as fs from 'fs';
+import open, {openApp, apps} from 'open';
 
-const { Client, GatewayIntentBits, Partials, TextInputStyle, ModalBuilder, TextInputBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const tmi = require('tmi.js');
-const express = require('express');
-//const fetch = require('node-fetch');
-const fs = require('fs');
+dotenv.config();
 
 /*
 OBJECTS, TOKENS, GLOBAL VARIABLES
@@ -323,7 +331,7 @@ function validate(openBrowser = true) {
 							console.log(`Error-Message: ${res.message}`);
 							console.log(`Open the following Website to authenticate: https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
 							if (openBrowser)
-								require('open')(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
+								open(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
 						} else {
 							tokens = res;
 							fs.writeFileSync('./.tokens.json', JSON.stringify(res));
@@ -335,7 +343,7 @@ function validate(openBrowser = true) {
 						console.error(err);
 						console.log(`Open the following Website to authenticate: https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
 						if (openBrowser)
-							require('open')(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
+							open(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
 					});
 				} else {
 					console.log(`Status: ${res.status}`);
@@ -375,7 +383,7 @@ server.listen(parseInt(process.env.LOCAL_SERVER_PORT), () => {
 	console.log('Express Server ready!');
 	if (!fs.existsSync('./.tokens.json')) {
 		console.log(`Open the following Website to authenticate: https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
-		require('open')(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
+		open(`https://id.twitch.tv/oauth2/authorize?client_id=${process.env.TWITCH_CLIENT_ID}&redirect_uri=http%3A%2F%2Flocalhost%3A${process.env.LOCAL_SERVER_PORT}&response_type=code&scope=chat%3Aread%20chat%3Aread%20moderator%3Amanage%3Achat_messages%20moderator%3Amanage%3Abanned_users`);
 	}
 });
 if (!mySecret) {
