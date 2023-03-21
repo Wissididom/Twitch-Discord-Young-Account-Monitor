@@ -12,7 +12,7 @@ import {
 	ButtonStyle
 } from 'discord.js';
 import * as tmi from 'tmi.js';
-import * as express from 'express';
+import express from 'express';
 //import fetch from 'node-fetch';
 import * as fs from 'fs';
 import open, {openApp, apps} from 'open';
