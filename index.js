@@ -71,13 +71,6 @@ async function isOldEnough(username, minAge) {
 	}
 }
 
-/*
-BOT ON
-
-This section runs when the bot is logged in and listening for commands. First, it writes a log to the console indicating it is logged in. Next, it listens on the server and determines whether a message starts with ! or $ before calling either the Admin checkCommand function, or the User checkInput function.
-*/
-
-// Outputs console log when bot is logged in
 client.on("ready", async () => {
 	console.log(`Logged in as ${client.user.tag}!`);  // Logging
 	modChannel = await client.channels.fetch(process.env.POSTING_CHANNEL_ID);
@@ -130,27 +123,7 @@ client.on("interactionCreate", async interaction => {
 		});
 	} else {
 		if (interaction.isChatInputCommand()) {
-			/*interaction.deferReply();
-			switch (interaction.commandName) {
-				case 'poll':
-					createPoll(interaction);
-					break;
-				case 'endpoll':
-					endPoll(interaction);
-					break;
-				case 'getpoll':
-					getPoll(interaction);
-					break;
-				case 'prediction':
-					createPrediction(interaction);
-					break;
-				case 'endprediction':
-					endPrediction(interaction);
-					break;
-				case 'getprediction':
-					getPrediction(interaction);
-					break;
-			}*/
+			// Should never happen - do nothing
 		} else if (interaction.isButton()) {
 			if (interaction.customId == 'deleteBtn') {
 				await interaction.deferReply({ ephemeral: true });
@@ -309,12 +282,6 @@ client.on("interactionCreate", async interaction => {
 		}
 	}
 });
-
-/*
-BOT START CODE (login, start server, etc)
-
-This section checks if there is a TOKEN secret and uses it to login if it is found. If not, the bot outputs a log to the console and terminates.
-*/
 
 function validate(openBrowser = true) {
 	return new Promise((resolve, reject) => {
