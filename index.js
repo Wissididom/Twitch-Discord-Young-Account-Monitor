@@ -294,11 +294,12 @@ async function setupEventSub() {
       console.log(`channel.chat.message: ${JSON.stringify(data)}`);
       console.log(data.payload.event);
       if (
-        await isOldEnough(
+        !(await isOldEnough(
           data.payload.event.chatter_user_login,
           parseInt(process.env.MIN_AGE_SECONDS, 10),
-        )
+        ))
       ) {
+        console.log("Account not old enough!");
         messages.push({
           discordMessage: await modChannel.send({
             content: `${data.payload.event.chatter_user_name}: ${data.payload.event.message.text}`,
