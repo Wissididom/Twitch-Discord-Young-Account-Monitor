@@ -292,7 +292,6 @@ async function setupEventSub() {
       wsClient.onerror = onerror;
     } else if (data.payload?.subscription?.type == "channel.chat.message") {
       console.log(`channel.chat.message: ${JSON.stringify(data)}`);
-      console.log(data.payload.event);
       if (
         !(await isOldEnough(
           data.payload.event.chatter_user_login,
